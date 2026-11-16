@@ -1,0 +1,445 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elitecare App Builder</title>
+
+<style>
+body{
+font-family:Arial,sans-serif;
+background:#f4f7fb;
+margin:0;
+color:#172033
+}
+.wrap{
+max-width:900px;
+margin:auto;
+padding:22px
+}
+header{
+background:#173b67;
+color:white;
+padding:22px;
+border-radius:16px;
+margin-bottom:18px
+}
+h1{margin:0;font-size:22px}
+header p{
+margin:7px 0 0;
+color:#dce9f7
+}
+.card{
+background:#fff;
+border:1px solid #e3e8ef;
+border-radius:14px;
+padding:18px;
+margin-bottom:15px
+}
+h2{
+font-size:16px;
+margin:0 0 14px
+}
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px
+}
+.field{
+display:flex;
+flex-direction:column;
+gap:6px
+}
+.full{grid-column:1/-1}
+label{
+font-size:11px;
+font-weight:700;
+color:#5b6678
+}
+input,select{
+height:42px;
+border:1px solid #d6ddea;
+border-radius:8px;
+padding:0 10px;
+font-size:14px
+}
+button{
+border:0;
+border-radius:8px;
+padding:12px 16px;
+font-weight:700;
+cursor:pointer
+}
+.primary{
+background:#173b67;
+color:#fff
+}
+.muted{
+background:#eaf0f7;
+color:#173b67
+}
+.row{
+display:flex;
+gap:9px;
+flex-wrap:wrap
+}
+.status{
+margin-top:12px;
+padding:11px;
+background:#f1f5f9;
+border-radius:8px;
+font-size:13px
+}
+.note{
+font-size:12px;
+color:#6b7587;
+line-height:1.5
+}
+.links a{
+display:none;
+margin:10px 8px 0 0;
+padding:9px;
+background:#eaf0f7;
+border-radius:7px;
+color:#173b67;
+text-decoration:none;
+font-size:12px;
+font-weight:700
+}
+@media(max-width:700px){
+.grid{grid-template-columns:1fr}
+.full{grid-column:auto}
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<header>
+<h1>Elitecare App Builder</h1>
+<p>Free GitHub Actions powered APK & AAB builder</p>
+</header>
+
+<div class="card">
+<h2>1. GitHub connection</h2>
+
+<div class="grid">
+
+<div class="field">
+<label>GITHUB OWNER / USERNAME</label>
+<input id="owner" placeholder="your-github-username">
+</div>
+
+<div class="field">
+<label>REPOSITORY</label>
+<input id="repo" placeholder="android-builder-repo">
+</div>
+
+<div class="field full">
+<label>GITHUB TOKEN</label>
+<input id="token" type="password"
+placeholder="Token is used only in this browser session">
+</div>
+
+</div>
+
+<p class="note">
+Create a GitHub token with access to this repository.
+The builder does not save it.
+</p>
+
+</div>
+
+<div class="card">
+
+<h2>2. Android project</h2>
+
+<div class="field">
+
+<label>ANDROID PROJECT ZIP</label>
+
+<input id="project"
+type="file"
+accept=".zip">
+
+</div>
+
+<p class="note">
+The ZIP should contain a complete Android/Gradle project with
+<b>gradlew</b>, <b>settings.gradle(.kts)</b> and an
+<b>app</b> module.
+</p>
+
+</div>
+
+<div class="card">
+
+<h2>3. App configuration</h2>
+
+<div class="grid">
+
+<div class="field">
+<label>APP NAME</label>
+<input id="appName" value="My App">
+</div>
+
+<div class="field">
+<label>PACKAGE NAME</label>
+<input id="packageName" value="com.elitecare.myapp">
+</div>
+
+<div class="field">
+<label>VERSION NAME</label>
+<input id="versionName" value="1.0.0">
+</div>
+
+<div class="field">
+<label>VERSION CODE</label>
+<input id="versionCode" value="1">
+</div>
+
+<div class="field full">
+
+<label>OUTPUT</label>
+
+<select id="buildType">
+<option value="aab">AAB — Google Play</option>
+<option value="apk">Release APK</option>
+<option value="both">AAB + APK</option>
+</select>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>4. Build</h2>
+
+<div class="row">
+
+<button class="primary" onclick="build()">
+BUILD APP
+</button>
+
+<button class="muted" onclick="location.reload()">
+RESET
+</button>
+
+</div>
+
+<div id="status" class="status">
+Ready.
+</div>
+
+<div id="links" class="links"></div>
+
+</div>
+
+<div class="card">
+
+<h2>Supported builder features</h2>
+
+<p class="note">
+APK • AAB • release signing • app icon • splash screen • onboarding •
+bottom navigation • push notifications • branding.
+The build workflow is the foundation; feature injection will be added
+as the next modules.
+</p>
+
+</div>
+
+</div>
+
+<script>
+
+const api=(path,opts)=>
+fetch("https://api.github.com"+path,opts);
+
+function headers(token,json=true){
+
+let h={
+"Authorization":"Bearer "+token,
+"Accept":"application/vnd.github+json",
+"X-GitHub-Api-Version":"2022-11-28"
+};
+
+if(json)
+h["Content-Type"]="application/json";
+
+return h;
+}
+
+async function build(){
+
+const owner=
+document.getElementById('owner').value.trim();
+
+const repo=
+document.getElementById('repo').value.trim();
+
+const token=
+document.getElementById('token').value.trim();
+
+const file=
+document.getElementById('project').files[0];
+
+const st=
+document.getElementById('status');
+
+const links=
+document.getElementById('links');
+
+links.innerHTML="";
+
+if(!owner||!repo||!token||!file){
+
+st.textContent=
+"Enter GitHub details and select the Android ZIP.";
+
+return;
+}
+
+try{
+
+st.textContent=
+"Checking GitHub repository…";
+
+const repoRes=
+await api(`/repos/${owner}/${repo}`,
+{
+headers:headers(token,false)
+});
+
+if(!repoRes.ok)
+throw Error(
+"Repository not found or token has no access."
+);
+
+const bytes=
+new Uint8Array(
+await file.arrayBuffer()
+);
+
+let binary="";
+
+const chunk=0x8000;
+
+for(
+let i=0;
+i<bytes.length;
+i+=chunk
+){
+
+binary+=String.fromCharCode(
+...bytes.subarray(i,i+chunk)
+);
+
+}
+
+const content=
+btoa(binary);
+
+st.textContent=
+"Uploading project ZIP to GitHub…";
+
+const put=
+await api(
+`/repos/${owner}/${repo}/contents/build-input.zip`,
+{
+method:"PUT",
+headers:headers(token),
+body:JSON.stringify({
+
+message:
+"Elitecare Builder: update build input",
+
+content
+
+})
+}
+);
+
+const putData=
+await put.json();
+
+if(!put.ok)
+throw Error(
+putData.message||"Upload failed."
+);
+
+st.textContent=
+"Starting Android build…";
+
+const dispatch=
+await api(
+`/repos/${owner}/${repo}/actions/workflows/build-android.yml/dispatches`,
+{
+method:"POST",
+headers:headers(token),
+body:JSON.stringify({
+
+ref:"main",
+
+inputs:{
+
+app_name:
+document.getElementById('appName').value,
+
+package_name:
+document.getElementById('packageName').value,
+
+version_name:
+document.getElementById('versionName').value,
+
+version_code:
+document.getElementById('versionCode').value,
+
+build_type:
+document.getElementById('buildType').value
+
+}
+
+})
+}
+);
+
+if(!dispatch.ok){
+
+let d=
+await dispatch.json();
+
+throw Error(
+d.message||
+"Could not start workflow."
+);
+
+}
+
+st.textContent=
+"Build started. Open GitHub Actions to see progress.";
+
+st.innerHTML+=
+'<br><a style="color:#173b67;font-weight:700" target="_blank" href="https://github.com/'+
+owner+'/'+repo+
+'/actions">Open GitHub Actions</a>';
+
+}
+
+catch(e){
+
+st.textContent=
+"Error: "+e.message;
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
