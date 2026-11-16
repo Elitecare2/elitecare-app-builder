@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elitecare App Builder</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#172033}
+.wrap{max-width:900px;margin:auto;padding:20px}
+header{background:#173b67;color:#fff;padding:22px;border-radius:16px;margin-bottom:18px}
+h1{margin:0;font-size:23px} header p{margin:8px 0 0;color:#dce9f7}
+.card{background:#fff;border:1px solid #e3e8ef;border-radius:14px;padding:18px;margin-bottom:15px}
+h2{font-size:18px;margin-top:0}
+label{display:block;font-weight:600;margin:13px 0 6px}
+input,select{width:100%;padding:12px;border:1px solid #cfd7e3;border-radius:9px;font-size:15px}
+button{border:0;border-radius:9px;padding:13px 18px;font-size:15px;font-weight:700}
+.primary{background:#173b67;color:#fff;width:100%;margin-top:18px}
+.status{padding:13px;border-radius:9px;background:#eef3f8;margin-top:15px;font-size:14px}
+.notice{background:#fff7e6;border:1px solid #f0d79a;padding:12px;border-radius:9px;font-size:13px}
+small{color:#667085} ul{padding-left:20px;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>Elitecare App Builder</h1><p>Private Android APK &amp; AAB Builder</p></header>
+
+<div class="card">
+<h2>1. App Information</h2>
+<label>App Name</label><input id="appName" value="Elitecare App">
+<label>Package Name</label><input id="packageName" value="com.elitecare.app">
+<label>Version Name</label><input id="versionName" value="1.0.0">
+<label>Version Code</label><input id="versionCode" type="number" value="1">
+<label>Build Type</label>
+<select id="buildType"><option value="both">APK + AAB</option><option value="aab">AAB only</option><option value="apk">APK only</option></select>
+</div>
+
+<div class="card">
+<h2>2. Android Project</h2>
+<div class="notice">Upload your complete Android Gradle project as a ZIP. It must contain <code>gradlew</code>, Gradle settings, and an <code>app</code> module.</div>
+<label>Project ZIP</label><input id="projectZip" type="file" accept=".zip">
+<button class="primary" onclick="startBuild()">Start Build</button>
+<div id="status" class="status">Ready to build.</div>
+</div>
+
+<div class="card">
+<h2>3. Build Requirements</h2>
+<ul><li>Android Gradle project</li><li>Java 17 compatible project</li><li>GitHub Actions enabled</li><li>Release APK/AAB configuration</li><li>For Google Play, use the generated AAB</li></ul>
+</div>
+
+<div class="card">
+<h2>Elitecare Builder</h2>
+<small>This private builder uses GitHub Actions as the build engine.</small>
+</div>
+</div>
+
+<script>
+function startBuild(){
+ const zip=document.getElementById("projectZip").files[0];
+ const status=document.getElementById("status");
+ if(!zip){status.textContent="Please select your Android project ZIP first.";return;}
+ status.textContent="Project selected: "+zip.name+". GitHub connection will be added in the next setup step.";
+}
+</script>
+</body>
+</html>
